@@ -1,0 +1,20 @@
+# The PyTorch stack must be installed from the CUDA 12.1 wheel index, not PyPI:
+#   pip install --no-cache-dir torch torchvision torchaudio \
+#       --index-url https://download.pytorch.org/whl/cu121
+torch
+torchvision
+torchaudio
+
+# Pinned below 2.0: parts of the stack below are not compatible with NumPy 2.x.
+# Only this package is constrained; everything else stays current.
+numpy<2.0
+
+transformers
+accelerate
+bitsandbytes
+huggingface_hub
+
+pandas
+matplotlib
+seaborn
+tqdm
