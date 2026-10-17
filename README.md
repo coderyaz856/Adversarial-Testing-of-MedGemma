@@ -28,6 +28,10 @@ Holding roughly 13B parameters across three models in one notebook session is no
 
 **Memory-aware model loading.** Precision is chosen per model against the GPU budget. The 7B generator is loaded in 4-bit NF4 with double quantization and a bfloat16 compute dtype, which is what makes room for the other two; the 4B target and 2B judge run in bfloat16. All three use `device_map="auto"` for automatic device placement. The quantization path sits behind a capability check that falls back cleanly to bfloat16 if `bitsandbytes` is unavailable, so the notebook still runs on hardware without quantization support.
 
+### Recorded execution evidence
+
+The saved notebook retains Jupyter execution counters and outputs for the post-bootstrap run. They show the 4-bit generator and both bfloat16 models loading before the seven-goal evaluation, followed by 104 evaluated candidates and the generated analysis figures. The [GPU engineering case study](docs/gpu-engineering-case-study.md) reconstructs that sequence, explains every compatibility decision, and states what the original run did not measure. Its [machine-readable execution manifest](docs/notebook-execution-manifest.json) is generated directly from notebook metadata, counters and stored outputs without executing a cell.
+
 ## Setup
 
 MedGemma and Gemma are gated repositories — request access on Hugging Face and authenticate before loading.
@@ -40,20 +44,23 @@ pip install --no-cache-dir torch torchvision torchaudio \
 pip install -r requirements.txt
 ```
 
-Restart the kernel after the PyTorch reinstall so the new binaries are picked up, then authenticate:
+In a fresh hosted session, run the dependency-installation cells before the import cell. Restart the kernel if PyTorch was already imported, then authenticate:
 
 ```python
 from huggingface_hub import notebook_login
 notebook_login()
 ```
 
-Run `adversarial_prompt_optimization.ipynb` top to bottom. The environment cells are marked and only need to run once per session.
+Confirm that the generator reports `4-bit mode: True`, then continue through the model-loading and evaluation cells in notebook order. See the [reproduction protocol](docs/gpu-engineering-case-study.md#reproduction-protocol) before running the notebook on a new hosted session.
 
 ## Repository structure
 
 ```
 adversarial_prompt_optimization.ipynb   Full pipeline: setup, model loading, optimization loop, analysis
 requirements.txt                        Dependencies, with the NumPy constraint documented
+docs/gpu-engineering-case-study.md      Decisions, retained execution order, reproduction protocol and limits
+docs/notebook-execution-manifest.json   Generated evidence from counters, metadata and stored outputs
+tools/notebook_execution_manifest.py    Offline manifest generator; does not execute notebook code
 ```
 
 ## Technologies
